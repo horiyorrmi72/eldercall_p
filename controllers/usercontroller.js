@@ -10,6 +10,7 @@ const getUsersTotal = (req, res) => {
       res.status(500).json({ error: error.message });
     });
 };
+
 //get user by ID's
 const getUserById = async (req, res) => {
   try {
@@ -26,24 +27,7 @@ const getUserById = async (req, res) => {
   }
 };
 
-const isAdmin = (req, res, next) => {
-  try {
-    const userRole = req.user.role;
-
-    if (userRole === "admin") {
-      next(); 
-    } else {
-      return res.status(403).json({
-        error: "Unauthorized - You need admin privileges to access this.",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 module.exports = {
   getUserById,
   getUsersTotal,
-  isAdmin,
 };
