@@ -1,33 +1,35 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const callSchema = new Schema({
-    user_id: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        unique: true       
+  // userId: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: "User",
+  // },
+  calls: {
+    callSid: {
+      type: String,
+      unique: true,
     },
-    calls: [{
-        calleeName: {
-            type:String
-        },
-        phoneNumber: {
-            type: String,
-            unique: true
-        },
-        calltype: {
-            type: String,
-            enum:['outgoing', 'incoming']
-        },
-        callCategory: {
-            type: String,
-            enum: ['wedding', 'naming', 'house warming', 'others']
-        },
-        callTime: {
-            type: Date
-        }
-    }]
+    calleeName: {
+      type: String,
+    },
+    phoneNumber: {
+      type: String,
+      unique: true,
+    },
+    calldirection: {
+      type: String,
+    },
+    callDuration: {
+      type: Number,
+      default: 0,
+    },
+    callDate: {
+      type: Date,
+    },
+  },
 });
 
-const call = mongoose.model('Calls', callSchema);
+const call = mongoose.model("Calls", callSchema);
 module.exports = call;
