@@ -181,13 +181,13 @@ const getTwilioCallLogs = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch call logs" });
   }
 };
+
 /**
- *
  * get all custom call logs from db
  * return ok status (200) if sucessful with call logs
  * return error if there is error and console.log error.
+ 
 */
-
 const getCustomCallLogs = async (req, res) => {
   try {
     const callLogs = await Call.find();
@@ -197,11 +197,35 @@ const getCustomCallLogs = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch call logs" });
   }
 };
+
+/**
+ *
+ * get user making call
+ * fetch all outbound calls from database (custom data)
+ * return ok status (200) if sucessful with call logs
+ * return error if there is error and console.log error.
+ */
+
+const getCustomOutboundCallLogs = async (req, res) => {
+  try {
+    // const user = req.user._id;
+    const callsData = await Call.find({
+      calldirection: (calldirection = "outbound"),
+    });
+    console.log(callsData);
+    res.status(200).json({ data: callsData });
+  } catch (error) {
+    console.error("Failed to fetch call logs:", error);
+    res.status(500).json({ error: "Failed to fetch call logs" });
+  }
+};
+
 module.exports = {
   makeCall,
   endCall,
   getCurrentCallSid,
   webhook,
   getTwilioCallLogs,
+  getCustomOutboundCallLogs,
   getCustomCallLogs,
 };

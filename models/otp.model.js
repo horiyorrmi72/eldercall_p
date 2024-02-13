@@ -19,7 +19,7 @@ const OTPSchema = new Schema({
   },
   expiresAt: {
     type: Date,
-    // Optionally set a default expiration period,24 hours from creation
+    // Optionally set a default expiration period, e.g., 24 hours from creation
     default: () => new Date(+new Date() + 24 * 60 * 60 * 1000),
   },
 });
