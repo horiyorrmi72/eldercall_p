@@ -20,29 +20,7 @@ const createService = async (req, res) => {
   }
 };
 
-/*
-{
-  service: {
-    sid: 'ZSa944085ddd48d3f4da230a47204f503b',
-    accountSid: 'AC614d99d47fbe830a1470fd81a9979d58',
-    friendlyName: 'el-der',
-    uniqueName: 'el-der',
-    includeCredentials: true,
-    uiEditable: false,
-    domainBase: 'el-der-6142',
-    dateCreated: 2024-01-08T14:41:12.000Z,
-    dateUpdated: 2024-01-08T14:41:12.000Z,
-    url: 'https://serverless.twilio.com/v1/Services/ZSa944085ddd48d3f4da230a47204f503b',
-    links: {
-      functions: 'https://serverless.twilio.com/v1/Services/ZSa944085ddd48d3f4da230a47204f503b/Functions',
-      assets: 'https://serverless.twilio.com/v1/Services/ZSa944085ddd48d3f4da230a47204f503b/Assets',
-      environments: 'https://serverless.twilio.com/v1/Services/ZSa944085ddd48d3f4da230a47204f503b/Environments',
-      builds: 'https://serverless.twilio.com/v1/Services/ZSa944085ddd48d3f4da230a47204f503b/Builds'
-    }
-  },
-  theSid: 'ZSa944085ddd48d3f4da230a47204f503b'
-}
-*/ 
+
 
 module.exports = {
   createService,
