@@ -36,7 +36,7 @@ const sendOTP = async (res, email) => {
       to: email,
       subject: "Your One-Time Password (OTP) from the callAPP",
       html: htmlTemplate
-        .replace("{{username}}", existingUser.username)
+        .replace("{{username}}", existingUser.fullname)
         .replace("{{otp}}", generatedOTP),
     };
 

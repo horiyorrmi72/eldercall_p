@@ -21,6 +21,7 @@ app.use(session({ secret: "secret", resave: false, saveUninitialized: false }));
 
 app.use("/", router);
 
+// connect to database
 connectDb();
 
 app.listen(PORT, () => {

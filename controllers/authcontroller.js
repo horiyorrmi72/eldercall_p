@@ -12,6 +12,23 @@ const {
   deleteOtp,
 } = require("../utils/OTP.utils");
 
+/**
+ * Signs up a new user.
+ *
+ * This function takes a request body with fullname, email and password,
+ * validates the input, checks for existing user with same email,
+ * hashes the password, saves the new user to the database,
+ * generates a JWT access token and
+ * returns a response with the new user object and token.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body with fullname, email and password
+ * @param {string} req.body.fullname - Full name of user
+ * @param {string} req.body.email - Email of user
+ * @param {string} req.body.password - Password of user
+ * @param {Object} res - Express response object
+ * @returns {Object} res - Response with new user object and token
+ */
 const signup = async (req, res) => {
   const { fullname, email, password } = req.body;
   try {
@@ -32,8 +49,8 @@ const signup = async (req, res) => {
 
     // Create a new user account and save data to db
     const user = new User({
+      fullname,
       email,
-      username,
       password: hashedPassword,
     });
     await user.save();
@@ -43,10 +60,22 @@ const signup = async (req, res) => {
       .status(200)
       .json({ message: "User Created Successfully", user: user, token });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ error: err.message });
   }
 };
 
+/**
+ * Logs a user in by validating their email and password.
+ * Checks if user exists and password matches.
+ * Generates JWT access and refresh tokens on success.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.email - User's email
+ * @param {string} req.body.password - User's password
+ * @param {Object} res - Express response object
+ * @returns {Object} res - Response with auth tokens and user data
+ */
 const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -68,13 +97,20 @@ const login = async (req, res) => {
       message: "User authenticated",
       accessToken: "JWT " + accessToken,
       refreshToken: refreshToken,
-      user: { id: user._id, email: user.email, username: user.fullname },
+      user: { id: user._id, email: user.email, fullname: user.fullname },
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
+
 // forgot password
+/**
+ * Handles forgot password flow.
+ * Sends OTP to user email if registered.
+ * Saves hashed OTP in DB.
+ * Returns 200 with email as token on success.
+ */
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -107,6 +143,12 @@ const forgotPassword = async (req, res) => {
 };
 
 // =========updating password============
+/**
+ * Handles resetting user password with OTP.
+ * Verifies OTP against user email.
+ * Updates user password if OTP is valid.
+ * Returns 200 if password reset is successful.
+ */
 const resetCode = async (req, res) => {
   try {
     const { token, otp } = req.body;
@@ -143,11 +185,18 @@ const resetCode = async (req, res) => {
       .status(200)
       .json({ message: "OTP verified successfully", token });
   } catch (error) {
-    console.error(error.message);
+    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
+/**
+ * Handles resetting user password with a new password.
+ * Verifies user email and ensures new password meets length requirement.
+ * Hashes new password and updates user document.
+ * Calls deleteOtp() to invalidate OTP after password reset.
+ * Returns 200 if password reset successful.
+ */
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -165,7 +214,6 @@ const resetPassword = async (req, res) => {
     const hashNewPassword = await hashData(newPassword);
     await User.updateOne({ email: token }, { password: hashNewPassword });
 
-    // Pass 'res' to deleteOtp function
     await deleteOtp(token);
 
     return res.status(200).json({ message: "Password updated successfully" });
