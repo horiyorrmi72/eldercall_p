@@ -6,47 +6,63 @@ const passport = require("passport");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
-const AccessToken = require("twilio").jwt.AccessToken;
+const {AccessToken} = require("twilio").jwt;
 const VoiceGrant = AccessToken.VoiceGrant;
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const callerId = "elder_call";
 
 const defaultIdentity = "elder_call";
 
-function callTokenGenerator(req, res) {
-  var identity = null;
-  if (req.method == "POST") {
-    identity = req.body.identity;
-  } else {
-    identity = req.query.identity;
-  }
+// function callTokenGenerator(req, res) {
+//   var identity = null;
+//   if (req.method == "POST") {
+//     identity = req.body.identity;
+//   } else {
+//     identity = req.query.identity;
+//   }
 
-  if (!identity) {
-    identity = defaultIdentity;
-  }
+//   if (!identity) {
+//     identity = defaultIdentity;
+//   }
 
-  // Used when generating any kind of tokens
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const apiKey = process.env.API_KEY;
-  const apiSecret = process.env.API_KEY_SECRET;
+//   // Used when generating any kind of tokens
+//   const accountSid = process.env.TWILIO_ACCOUNT_SID;
+//   const apiKey = process.env.API_KEY;
+//   const apiSecret = process.env.API_KEY_SECRET;
 
-  // Grant access to Twilio Voice capabilities
-  const voiceGrant = new VoiceGrant({
-    outgoingApplicationSid: process.env.TWILIO_APP_SID,
-    incomingAllow: true, // Allow incoming calls
+//   // Grant access to Twilio Voice capabilities
+//   const voiceGrant = new VoiceGrant({
+//     outgoingApplicationSid: process.env.TWILIO_APP_SID,
+//     incomingAllow: true, // Allow incoming calls
+//   });
+//   // Create an access token which we will sign and return to the client,
+//   // containing the grant we just created
+//   const callToken = new AccessToken(accountSid, apiKey, apiSecret);
+
+//   // Add the grant to the token
+//   callToken.addGrant(voiceGrant);
+
+//   // Set the identity of the token
+//   callToken.identity = identity;
+
+//   console.log("Token:" + callToken.toJwt());
+//   return response.send(callToken.toJwt());
+// }
+
+const callAccessToken = (user) => {
+  const accessToken = new AccessToken(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.API_KEY,
+    process.env.API_KEY_SECRET
+  );
+  accessToken.identity = user.fullname;
+
+  const voiceGrant = new AccessToken.VoiceGrant({
+    outgoingApplicationSid:'to b added',
+    
   });
-  // Create an access token which we will sign and return to the client,
-  // containing the grant we just created
-  const callToken = new AccessToken(accountSid, apiKey, apiSecret);
-
-  // Add the grant to the token
-  callToken.addGrant(voiceGrant);
-
-  // Set the identity of the token
-  callToken.identity = identity;
-
-  console.log("Token:" + callToken.toJwt());
-  return response.send(callToken.toJwt());
+  accessToken.addGrant(voiceGrant);
+  return accessToken.toJwt();
 }
 
 const generateCallTwiML = (calleeNumber) => {
@@ -54,7 +70,7 @@ const generateCallTwiML = (calleeNumber) => {
   twiml.play(
     "https://drab-zebu-6611.twil.io/assets/TunePocket-Touch-Of-Life-Logo-Preview.mp3"
   );
-  twiml.dial();
+  twiml.dial(calleeNumber);
 
   return twiml.toString();
 };
@@ -87,15 +103,11 @@ const makeCall = async (req, res) => {
     };
 
     const callRecord = new Call({
-      // userId: user,
-      calls: {
-        callSid: call.sid,
-        calleeName: calleeName,
-        phoneNumber: calleeNumber,
-        calldirection: checkDirection(),
-        callDuration: call.duration,
-        callDate: Date.now(),
-      },
+      callSid: call.sid,
+      phoneNumber: calleeNumber,
+      calldirection: checkDirection(),
+      callDuration: call.duration,
+      callDate: new Date().toDateString(),
     });
     await callRecord.save();
 
