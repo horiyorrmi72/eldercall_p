@@ -30,12 +30,16 @@ const {
  * @returns {Object} res - Response with new user object and token
  */
 const signup = async (req, res) => {
-  const { fullname, email, password } = req.body;
+  const { fullname, email, password, confirmPassword } = req.body;
   try {
     if (!fullname || !email || !password) {
       return res.status(400).json({ error: "all input required" });
     }
-
+    if (!confirmPassword || confirmPassword.length !== password.length) {
+      return res
+        .status(400)
+        .json({ error: "password and confirm password does not match" });
+    }
     // Check if the user is already registered
     const existingUser = await User.findOne({ email });
     if (existingUser) {
