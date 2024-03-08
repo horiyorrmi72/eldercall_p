@@ -9,7 +9,7 @@ const CREDENTIIALS = {
 const event = {
     'summary': req.body,
     'location': null,
-    'desription': `place a call to ${calleeNumber}`,
+    'desription':"" ,
     'start': {
         'dateTime': req.body,
         'timeZone': req.body,

@@ -34,12 +34,31 @@ const generateResetToken = function generateResetToken(email) {
   return resetToken;
 };
 
+const verifyJWTToken = async (req, res) => {
+  try
+  {
+    const token = req.headers.authorization || req.params || req.body;
+    if (!token)
+    {
+      return res.status(401).json({ message: 'Unauthorized' });
+
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+  }
+  catch (err)
+  {
+    console.log(err.message);
+    return res.status(500).json({ message: 'Error verifying', err });
+    
+  }
+}
 
 
-module.exports = {
-  generateToken,
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
+  module.exports = {
+    generateToken,
+    generateAccessToken,
+    generateRefreshToken,
+    verifyRefreshToken,
   
-};
+  };

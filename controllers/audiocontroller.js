@@ -8,6 +8,9 @@ const audio = require("../models/audio.model");
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
+ * @argument friendlyName - Name of the audio file
+ * @argument category - category the audio file belongs to
+ * @argument assetLink - audio file url generated.
  *
  * @returns {Promise}
  */

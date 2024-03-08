@@ -70,7 +70,7 @@ const generateCallTwiML = (calleeNumber) => {
   twiml.play(
     "https://drab-zebu-6611.twil.io/assets/TunePocket-Touch-Of-Life-Logo-Preview.mp3"
   );
-  twiml.dial(calleeNumber);
+  twiml.dial.number(calleeNumber);
 
   return twiml.toString();
 };
@@ -114,7 +114,7 @@ const makeCall = async (req, res) => {
     res.status(200).json({
       message: "Call initiated successfully",
       callRecord: callRecord,
-      call,
+      // call,
       /* token: token,*/
     });
   } catch (err) {
@@ -142,7 +142,7 @@ const endCall = async (req, res) => {
       res.status(404).send("No ongoing calls found");
       return;
     }
-    const currentUserCall = await call.findOne({
+    const currentUserCall = await Call.findOne({
       // userId: user,
       callSid: callSid,
     });
