@@ -11,6 +11,7 @@ const {
   verifyOtp,
   deleteOtp,
 } = require("../utils/OTP.utils");
+const { validateEmail } = require("../utils/authValidators.utils");
 
 /**
  * Signs up a new user.
@@ -35,11 +36,17 @@ const signup = async (req, res) => {
     if (!fullname || !email || !password) {
       return res.status(400).json({ error: "all input required" });
     }
+    // validate email.
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: "Invalid email format!" });
+    }
+
     if (!confirmPassword || confirmPassword.length !== password.length) {
       return res
         .status(400)
         .json({ error: "password and confirm password does not match" });
     }
+
     // Check if the user is already registered
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -82,7 +89,12 @@ const signup = async (req, res) => {
  */
 const login = async (req, res) => {
   const { email, password } = req.body;
-  try {
+  try
+  {
+    if (!validateEmail(email))
+    {
+      return res.status(400).json({ error: "Invalid Email or Password!" });
+    }
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: "user not found kindly signup" });
@@ -118,6 +130,10 @@ const login = async (req, res) => {
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!validateEmail(email))
+    { 
+      return res.status(400).json({ error: "Invalid email format!" });
+    }
 
     const user = await User.findOne({ email });
 
