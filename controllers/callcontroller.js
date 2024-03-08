@@ -102,7 +102,7 @@ const makeCall = async (req, res) => {
     res.status(200).json({
       message: "Call initiated successfully",
       callRecord: callRecord,
-      call,
+      // call,
       /* token: token,*/
     });
   } catch (err) {
