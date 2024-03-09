@@ -70,7 +70,7 @@ const generateCallTwiML = (calleeNumber) => {
   twiml.play(
     "https://drab-zebu-6611.twil.io/assets/TunePocket-Touch-Of-Life-Logo-Preview.mp3"
   );
-  twiml.dial.number(calleeNumber);
+  twiml.dial(calleeNumber);
 
   return twiml.toString();
 };
