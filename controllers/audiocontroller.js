@@ -54,8 +54,9 @@ const uploadAsset = async (req, res, next) => {
  * @returns {Promise<string>} The TwiML markup for the random audio file
  * @throws {Error} If no audio files found for the category
  */
-const getAudioLinkByCategory = async (category) => {
+const getAudioLinkByCategory = async (req, res) => {
   try {
+    const { category } = req.params;
     const audioFiles = await audio.find({ category });
 
     if (audioFiles.length === 0) {
@@ -67,10 +68,15 @@ const getAudioLinkByCategory = async (category) => {
 
     const twiml = new twilio.twiml.VoiceResponse();
     twiml.play(randomAudioFile.assetLink, { loop: 1 });
-    return twiml.toString();
+
+    // Send the TwiML as response
+    res.type("text/xml");
+    res.send(twiml.toString());
   } catch (error) {
     console.error("Error fetching audio files:", error);
-    throw new Error(`Error fetching audio files: ${error.message}`);
+    res
+      .status(500)
+      .json({ error: `Error fetching audio files: ${error.message}` });
   }
 };
 
