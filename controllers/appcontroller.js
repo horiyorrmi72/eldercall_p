@@ -3,5 +3,5 @@ const ElderAppHome = async (req, res) => {
 };
 
 module.exports = {
-  getHome,
+  ElderAppHome,
 };

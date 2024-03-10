@@ -6,9 +6,11 @@ const callcontroller = require("../controllers/callcontroller");
 const OTP = require("../utils/OTP.utils");
 const audiocontroller = require("../controllers/audiocontroller");
 const sidcontroller = require("../utils/service.utils");
+const appcontroller = require("../controllers/appcontroller");
 
 const router = express.Router();
 
+router.get("/", appcontroller.ElderAppHome);
 // auth routes
 router.post("/auth/signup", authcontroller.signup);
 router.post("/auth/login", authcontroller.login);
@@ -28,7 +30,6 @@ router.get("/status", callcontroller.webhook);
 router.get("/twilioLogs", callcontroller.getTwilioCallLogs);
 router.get("/outboundCallLogs", callcontroller.getCustomOutboundCallLogs);
 router.get("/customlogs", callcontroller.getCustomCallLogs);
-
 
 // audio routes
 router.post("/upload", audiocontroller.uploadAsset);
