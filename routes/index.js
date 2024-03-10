@@ -32,7 +32,7 @@ router.get("/customlogs", callcontroller.getCustomCallLogs);
 
 // audio routes
 router.post("/upload", audiocontroller.uploadAsset);
-router.get("/play-audio", audiocontroller.getAudioLinkByCategory);
+router.get("/play-audio/:category", audiocontroller.getAudioLinkByCategory);
 
 // sid creator
 router.get("/getSid", sidcontroller.createService);
