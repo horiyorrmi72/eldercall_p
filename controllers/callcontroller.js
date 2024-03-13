@@ -75,9 +75,21 @@ const generateCallTwiML = (calleeNumber) => {
   return twiml.toString();
 };
 
+/**
+ * Initiates a Twilio voice call from the given phone number to the provided callee number.
+ *
+ * @param {Object} req - Express request object
+ * @param {string} req.body.calleeNumber - Phone number to call
+ * @param {string} req.body.calleeName - Name of call recipient
+ * @param {string} req.body.callDirection - Direction of call (inbound/outbound)
+ * @param {Object} res - Express response object
+ *
+ * @returns {Promise} - Promise resolving to call record object or error response
+ */
+
 const makeCall = async (req, res) => {
   // const user = req.user._id;
-  const { calleeNumber, calleeName, calldirection } = req.body;
+  const { calleeNumber, calleeName, calldirection, audioCategory} = req.body;
   try {
     if (!calleeNumber) {
       return res.status(400).send("Recipient number is required");
