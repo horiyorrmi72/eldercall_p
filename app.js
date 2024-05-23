@@ -7,6 +7,7 @@ const logger = require("morgan");
 const router = require("./routes");
 const connectDb = require("./config/db");
 const twilio = require("twilio");
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,7 +17,8 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(session({ secret: "secret", resave: false, saveUninitialized: false }));
+app.use(session({ secret: process.env.secret, resave: false, saveUninitialized: false }));
+app.use(cors());
 // Mount the router at the '/routes' path
 
 app.use("/", router);
