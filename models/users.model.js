@@ -8,6 +8,7 @@ const { Schema } = mongoose;
  * - email: Email address of user
  * - password: Hashed password for user
  * - role: User role - 'admin' or 'user' but user by default.
+ * - phone: Phone number of user
  */
 const userSchema = new Schema({
   fullname: {
@@ -27,6 +28,10 @@ const userSchema = new Schema({
     type: String,
     enum: ["admin", "user"],
     default: "user",
+  },
+  phone: {
+    type: String,
+    required: true,
   }
 });
 
