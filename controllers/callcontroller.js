@@ -13,42 +13,6 @@ const callerId = "elder_call";
 
 const defaultIdentity = "elder_call";
 
-// function callTokenGenerator(req, res) {
-//   var identity = null;
-//   if (req.method == "POST") {
-//     identity = req.body.identity;
-//   } else {
-//     identity = req.query.identity;
-//   }
-
-//   if (!identity) {
-//     identity = defaultIdentity;
-//   }
-
-//   // Used when generating any kind of tokens
-//   const accountSid = process.env.TWILIO_ACCOUNT_SID;
-//   const apiKey = process.env.API_KEY;
-//   const apiSecret = process.env.API_KEY_SECRET;
-
-//   // Grant access to Twilio Voice capabilities
-//   const voiceGrant = new VoiceGrant({
-//     outgoingApplicationSid: process.env.TWILIO_APP_SID,
-//     incomingAllow: true, // Allow incoming calls
-//   });
-//   // Create an access token which we will sign and return to the client,
-//   // containing the grant we just created
-//   const callToken = new AccessToken(accountSid, apiKey, apiSecret);
-
-//   // Add the grant to the token
-//   callToken.addGrant(voiceGrant);
-
-//   // Set the identity of the token
-//   callToken.identity = identity;
-
-//   console.log("Token:" + callToken.toJwt());
-//   return response.send(callToken.toJwt());
-// }
-
 const callAccessToken = (user) => {
   const accessToken = new AccessToken(
     process.env.TWILIO_ACCOUNT_SID,
@@ -65,75 +29,114 @@ const callAccessToken = (user) => {
   return accessToken.toJwt();
 }
 
-const generateCallTwiML = (calleeNumber) => {
-  const twiml = new VoiceResponse();
-  twiml.play(
-    "https://drab-zebu-6611.twil.io/assets/TunePocket-Touch-Of-Life-Logo-Preview.mp3"
-  );
-  twiml.dial(calleeNumber);
-
-  return twiml.toString();
-};
-
 /**
  * Initiates a Twilio voice call from the given phone number to the provided callee number.
  *
  * @param {Object} req - Express request object
  * @param {string} req.body.calleeNumber - Phone number to call
  * @param {string} req.body.calleeName - Name of call recipient
- * @param {string} req.body.callDirection - Direction of call (inbound/outbound)
+ * @param {string} const user = req.user._id;req.body.callDirection - Direction of call (inbound/outbound)
  * @param {Object} res - Express response object
  *
  * @returns {Promise} - Promise resolving to call record object or error response
  */
 
 const makeCall = async (req, res) => {
-  // const user = req.user._id;
-  const { calleeNumber, calleeName, calldirection, audioCategory} = req.body;
-  try {
-    if (!calleeNumber) {
-      return res.status(400).send("Recipient number is required");
+  const user = req.user;
+  // console.log("Authenticated user:", user); 
+  if (!user)
+  {
+    console.error("User object is not available, you must be logged in to use this feature");
+    return res.status(500).send("User data is missing or incomplete, please try again");
+  }
+
+  if (!user.phone)
+  {
+    console.error("User phone number is not available:", user.phone);
+    return res.status(500).send("User phone number is missing");
+  }
+
+  // Retrieve request body parameters
+  const { calleeNumber, calleeName, calldirection, audioCategory } = req.body;
+
+  try
+  {
+    
+    if (!calleeNumber)
+    {
+      console.error("Recipient number is required but not provided");
+      return res.status(400).json({
+        msg: "Recipient number is required", data: {
+          call_direction: "outbound",
+          success: false,
+          error: true,
+          error_msg: "Recipient number is required",
+      }});
     }
 
-    // Generate the access token
-    // const token = await callTokenGenerator(req);
+    // console.log("Callee number:", calleeNumber); 
 
-    const twimlResponse = generateCallTwiML(calleeNumber);
+    const twimlResponse = generateCallTwiML(calleeNumber, user);
+    // console.log("Generated TwiML Response:", twimlResponse); 
 
+    // Initiate the call
     const call = await client.calls.create({
       twiml: twimlResponse,
       to: calleeNumber,
-      from: process.env.PHONE_NUMBER,
-      statusCallback: "https://drab-zebu-6611.twil.io/status",
+      from: process.env.PHONE_NUMBER, 
+      statusCallback: "https://drab-zebu-6611.twil.io/status", //statusCallback url to be updated later
       statusCallbackMethod: "POST",
       statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
     });
-    const checkDirection = function () {
-      if (call.direction === "outbound-api") {
-        return "outbound";
-      }
-    };
 
+    // console.log("Call object:", call);
+
+    // Determine call direction
+    const callDirection = call.direction === "outbound-api" ? "outbound" : "inbound";
+
+    // Create a call record
     const callRecord = new Call({
+      userId: user._id,
       callSid: call.sid,
       phoneNumber: calleeNumber,
-      calldirection: checkDirection(),
-      callDuration: call.duration,
+      calldirection: calldirection || callDirection,
+      callDuration: call.duration || 0,
       callDate: new Date().toDateString(),
     });
+
     await callRecord.save();
 
     res.status(200).json({
       message: "Call initiated successfully",
       callRecord: callRecord,
-      // call,
-      /* token: token,*/
     });
-  } catch (err) {
+  } catch (err)
+  {
     console.error("Error making the call:", err);
     res.status(500).send("Failed to make the call");
   }
 };
+
+
+
+const generateCallTwiML = (calleeNumber, user) => {
+  // console.log("User phone number in generateCallTwiML:", user.phone);
+  const twiml = new VoiceResponse();
+  twiml.play("https://drab-zebu-6611.twil.io/assets/TunePocket-Touch-Of-Life-Logo-Preview.mp3");
+  twiml.say("A moment please while we connect you to the caller");
+
+  if (user.phone)
+  {
+    twiml.dial(user.phone); 
+  } else
+  {
+    console.error("User phone number is missing when generating TwiML");
+  }
+
+  return twiml.toString();
+};
+
+
 
 const getCurrentCallSid = async () => {
   const user = req.user._id;
@@ -147,15 +150,16 @@ const getCurrentCallSid = async () => {
 };
 
 const endCall = async (req, res) => {
+  const user = req.user;
   try {
-    const callSid = await getCurrentCallSid();
+    const callSid = await getCurrentCallSid(req, res);
 
     if (!callSid) {
       res.status(404).send("No ongoing calls found");
       return;
     }
     const currentUserCall = await Call.findOne({
-      // userId: user,
+      userId: user._id,
       callSid: callSid,
     });
     if (currentUserCall) {
@@ -198,7 +202,7 @@ const webhook = async (req, res) => {
 };
 const getTwilioCallLogs = async (req, res) => {
   try {
-    const calls = await client.calls.list({ limit: 20 }); // Adjust limit as needed
+    const calls = await client.calls.list({ limit: 20 }); 
     res.status(200).json({ calls });
   } catch (error) {
     console.error("Failed to fetch call logs:", error);
