@@ -9,6 +9,7 @@ const logger = require("morgan");
 const router = require("./routes");
 const connectDb = require("./config/db");
 const cors = require('cors');
+const MongoStore = require("connect-mongo");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,7 +19,11 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(session({ secret: process.env.secret, resave: false, saveUninitialized: false }));
+app.use(session({
+  secret: process.env.secret, resave: false, saveUninitialized: false, store: MongoStore.create({
+    mongoUrl: process.env.db_url,
+    collectionName: 'sessions',
+})}));
 app.use(cors());
 
 // Initializing Passport
