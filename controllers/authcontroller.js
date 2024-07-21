@@ -27,21 +27,26 @@ const { validateEmail } = require("../utils/authValidators.utils");
  * @param {string} req.body.fullname - Full name of user
  * @param {string} req.body.email - Email of user
  * @param {string} req.body.password - Password of user
+ * @param {string} req.body.phone - Phone number of user
  * @param {Object} res - Express response object
  * @returns {Object} res - Response with new user object and token
  */
 const signup = async (req, res) => {
-  const { fullname, email, password, confirmPassword } = req.body;
-  try {
-    if (!fullname || !email || !password) {
+  const { fullname, email, password, confirmPassword, phone } = req.body;
+  try
+  {
+    if (!fullname || !email || !password || !phone)
+    {
       return res.status(400).json({ error: "all input required" });
     }
     // validate email.
-    if (!validateEmail(email)) {
+    if (!validateEmail(email))
+    {
       return res.status(400).json({ error: "Invalid email format!" });
     }
 
-    if (!confirmPassword || confirmPassword.length !== password.length) {
+    if (!confirmPassword || confirmPassword.length !== password.length)
+    {
       return res
         .status(400)
         .json({ error: "password and confirm password does not match" });
@@ -49,7 +54,8 @@ const signup = async (req, res) => {
 
     // Check if the user is already registered
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
+    {
       return res.status(401).json({
         error: "already registered, user with email or username exist!",
       });
@@ -63,6 +69,7 @@ const signup = async (req, res) => {
       fullname,
       email,
       password: hashedPassword,
+      phone
     });
     await user.save();
     const token = generateAccessToken({ userId: user._id });
@@ -70,7 +77,8 @@ const signup = async (req, res) => {
     res
       .status(200)
       .json({ message: "User Created Successfully", user: user, token });
-  } catch (err) {
+  } catch (err)
+  {
     console.log(err);
     return res.status(500).json({ error: err.message });
   }
@@ -96,14 +104,16 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Invalid Email or Password!" });
     }
     const user = await User.findOne({ email });
-    if (!user) {
+    if (!user)
+    {
       return res.status(401).json({ error: "user not found kindly signup" });
     }
 
     // Checking if password matches with the user's password on db
     const matchPassword = await compareData(password, user.password);
 
-    if (!matchPassword) {
+    if (!matchPassword)
+    {
       return res.status(401).json({ error: "password mismatch" });
     }
 
@@ -115,7 +125,8 @@ const login = async (req, res) => {
       refreshToken: refreshToken,
       user: { id: user._id, email: user.email, fullname: user.fullname },
     });
-  } catch (err) {
+  } catch (err)
+  {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -128,16 +139,18 @@ const login = async (req, res) => {
  * Returns 200 with email as token on success.
  */
 const forgotPassword = async (req, res) => {
-  try {
+  try
+  {
     const { email } = req.body;
     if (!validateEmail(email))
-    { 
+    {
       return res.status(400).json({ error: "Invalid email format!" });
     }
 
     const user = await User.findOne({ email });
 
-    if (!user) {
+    if (!user)
+    {
       return res.status(404).json({ message: "Not a registered user!" });
     }
 
@@ -156,7 +169,8 @@ const forgotPassword = async (req, res) => {
       message: "OTP sent successfully for password reset",
       token: email,
     });
-  } catch (error) {
+  } catch (error)
+  {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -170,18 +184,21 @@ const forgotPassword = async (req, res) => {
  * Returns 200 if password reset is successful.
  */
 const resetCode = async (req, res) => {
-  try {
+  try
+  {
     const { token, otp } = req.body;
 
     const user = await User.findOne({ email: token });
 
-    if (!user) {
+    if (!user)
+    {
       return res.status(404).json({ message: "User not found" });
     }
 
     const existingOtp = await OTP.findOne({ email: token });
 
-    if (!existingOtp) {
+    if (!existingOtp)
+    {
       return res
         .status(401)
         .json({ message: "OTP not found or not registered email" });
@@ -189,7 +206,8 @@ const resetCode = async (req, res) => {
 
     const { expiresAt } = existingOtp;
 
-    if (expiresAt < Date.now()) {
+    if (expiresAt < Date.now())
+    {
       await OTP.deleteOne({ email: token });
       return res.status(401).json({ message: "Code expired" });
     }
@@ -197,14 +215,16 @@ const resetCode = async (req, res) => {
     const hashedOtp = existingOtp.otp;
     const verifiedOtp = await compareData(otp, hashedOtp);
 
-    if (!verifiedOtp) {
+    if (!verifiedOtp)
+    {
       return res.status(401).json({ message: "Invalid OTP" });
     }
 
     return res
       .status(200)
       .json({ message: "OTP verified successfully", token });
-  } catch (error) {
+  } catch (error)
+  {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -218,16 +238,19 @@ const resetCode = async (req, res) => {
  * Returns 200 if password reset successful.
  */
 const resetPassword = async (req, res) => {
-  try {
+  try
+  {
     const { token, newPassword } = req.body;
 
     const user = await User.findOne({ email: token });
 
-    if (!user) {
+    if (!user)
+    {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (newPassword.length < 8) {
+    if (newPassword.length < 8)
+    {
       return res.status(403).json({ message: "Password too short" });
     }
 
@@ -237,7 +260,8 @@ const resetPassword = async (req, res) => {
     await deleteOtp(token);
 
     return res.status(200).json({ message: "Password updated successfully" });
-  } catch (error) {
+  } catch (error)
+  {
     console.error(error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
