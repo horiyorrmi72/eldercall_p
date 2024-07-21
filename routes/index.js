@@ -11,7 +11,7 @@ const appcontroller = require("../controllers/appcontroller");
 const router = express.Router();
 
 router.get("/", appcontroller.ElderAppHome);
-// auth routes
+// Auth routes
 router.post("/auth/signup", authcontroller.signup);
 router.post("/auth/login", authcontroller.login);
 router.post("/auth/forgot-password", authcontroller.forgotPassword);
@@ -20,22 +20,22 @@ router.post("/sendotp", OTP.sendOTP);
 router.post("/verifyotp", OTP.verifyOtp);
 router.post("/deleteotp", OTP.deleteOtp);
 
-/*user routes*/
+// User routes
 router.get("/userbyid/:id", usercontroller.getUserById);
 
-/*call routes*/
-router.post("/make-call", callcontroller.makeCall);
-router.post("/end-call", callcontroller.endCall);
+// Call routes
+router.post("/make-call", passport.authenticate("jwt", { session: false }), callcontroller.makeCall);
+router.post("/end-call", passport.authenticate("jwt", { session: false }), callcontroller.endCall);
 router.get("/status", callcontroller.webhook);
 router.get("/twilioLogs", callcontroller.getTwilioCallLogs);
 router.get("/outboundCallLogs", callcontroller.getCustomOutboundCallLogs);
 router.get("/customlogs", callcontroller.getCustomCallLogs);
 
-// audio routes
+// Audio routes
 router.post("/upload", audiocontroller.uploadAsset);
 router.get("/play-audio/:category", audiocontroller.getAudioLinkByCategory);
 
-// sid creator
+// SID creator
 router.get("/getSid", sidcontroller.createService);
 
 module.exports = router;
