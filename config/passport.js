@@ -1,27 +1,31 @@
 require("dotenv").config();
-const { Strategy } = require("passport-jwt");
-const user = require("../models/users.model");
-const JwtStrategy = require("passport-jwt").Strategy,
-  ExtractJwt = require("passport-jwt").ExtractJwt;
+const { Strategy: JwtStrategy, ExtractJwt } = require("passport-jwt");
+const User = require("../models/users.model");
 
 module.exports = (passport) => {
   const opts = {};
-
   opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
   opts.secretOrKey = process.env.JWT_SECRET;
 
   passport.use(
-    new Strategy(opts, async function (jwt_payload, done) {
-      try {
-        await user.findOne({ id: jwt_payload._id }, (err, user) => {
-          if (user) {
-            return done(null, user);
-          } else {
-            return done(null, false);
-          }
-        });
-      } catch (error) {
-        return done(err, false);
+    new JwtStrategy(opts, async (jwt_payload, done) => {
+      // console.log("JWT Payload:", jwt_payload); 
+      try
+      {
+        const user = await User.findOne({ _id: jwt_payload.userId }); 
+        if (user)
+        {
+          // console.log("User found:", user); 
+          return done(null, user);
+        } else
+        {
+          console.log("User not found");
+          return done(null, false);
+        }
+      } catch (error)
+      {
+        console.error("Error in passport strategy:", error); 
+        return done(error, false);
       }
     })
   );
@@ -31,7 +35,7 @@ module.exports = (passport) => {
   });
 
   passport.deserializeUser((id, done) => {
-    user.getUserById(id, (err, user) => {
+    User.findById(id, (err, user) => {
       done(err, user);
     });
   });
