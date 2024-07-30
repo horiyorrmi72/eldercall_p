@@ -20,6 +20,10 @@ const callSchema = new Schema({
     type: Number,
     default: 0,
   },
+  callStatus: {
+    type: String,
+    trim: true,
+  },
   callDate: {
     type: Date,
   },

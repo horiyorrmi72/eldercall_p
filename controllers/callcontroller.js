@@ -100,6 +100,7 @@ const makeCall = async (req, res) => {
       phoneNumber: calleeNumber,
       calldirection: calldirection || callDirection,
       callDuration: call.duration || 0,
+      callStatus: call.status,
       callDate: new Date().toDateString(),
     });
 
@@ -138,40 +139,65 @@ const generateCallTwiML = (calleeNumber, user) => {
 
 
 const getCurrentCallSid = async () => {
-  const user = req.user._id;
-  try {
-    const calls = await client.calls.list({ status: "in-progress" });
-    return calls && calls.length > 0 ? calls[0].sid : null;
-  } catch (error) {
-    console.error("Failed to fetch current call SID:", error);
-    throw new Error("Failed to fetch current call SID");
+  try
+  {
+    const calls = await client.calls.list({
+      status: ["queued", "in-progress", "ringing"]
+    });
+
+    console.log("Retrieved calls:", calls);
+
+    // Return an array of call SIDs
+    return calls.map(call => call.sid);
+  } catch (error)
+  {
+    console.error("Failed to fetch current call SIDs:", error);
+    throw new Error("Failed to fetch current call SIDs");
   }
 };
+
 
 const endCall = async (req, res) => {
   const user = req.user;
-  try {
-    const callSid = await getCurrentCallSid(req, res);
 
-    if (!callSid) {
-      res.status(404).send("No ongoing calls found");
-      return;
+  if (!user)
+  {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try
+  {
+    // Fetch ongoing call SIDs
+    const callSids = await getCurrentCallSid();
+
+    if (!callSids || callSids.length === 0)
+    {
+      return res.status(404).json({ message: "No ongoing calls found" });
     }
+
+    // Query for ongoing calls associated with the user
     const currentUserCall = await Call.findOne({
       userId: user._id,
-      callSid: callSid,
+      callSid: { $in: callSids },
+      callStatus:["in-progress","queued","ringing"]
     });
-    if (currentUserCall) {
-      await client.calls(callSid).update({ status: "completed" });
+
+    if (currentUserCall)
+    {
+      // End the call
+      await client.calls(currentUserCall.callSid).update({ status: "completed" });
       return res.status(200).json({ message: "Call ended successfully" });
-    } else {
-      return res.status(404).send("No ongoing calls found for this user");
+    } else
+    {
+      return res.status(404).json({ message: "No ongoing calls found for this user" });
     }
-  } catch (error) {
+  } catch (error)
+  {
     console.error("Failed to end the call:", error);
-    res.status(500).json({ msg: "Failed to end call", error });
+    return res.status(500).json({ message: "Failed to end call", error });
   }
 };
+
 
 const webhook = async (req, res) => {
   try {
