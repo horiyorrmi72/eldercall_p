@@ -4,7 +4,12 @@
   "description": "call with celebration audio played to the called party",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug":"ndb app.js",
+    "start": "NODE_ENV=production node app.js",
+    "dev":"NODE_ENV=development nodemon app.js",
+    "lint": "npx eslint ."
+    
   },
   "repository": {
     "type": "git",
@@ -42,5 +47,11 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "twilio": "^4.20.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "eslint": "^9.8.0",
+    "globals": "^15.8.0",
+    "ndb": "^1.1.5"
   }
 }
