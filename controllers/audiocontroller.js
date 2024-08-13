@@ -1,5 +1,4 @@
 require('dotenv').config();
-const twilio = require('twilio');
 const audio = require('../models/audio.model');
 const { S3Client } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
@@ -27,8 +26,7 @@ const uploadDataToS3 = async (filename, bucket, fileBuffer) => {
     });
     const result = await data.done();
     return result;
-  } catch (error)
-  {
+  } catch (error) {
     /* eslint-disable-next-line no-console */
     console.error('Error uploading file:', error);
     throw error;
@@ -86,7 +84,8 @@ const uploadAsset = async (req, res) => {
       });
     }
 
-    const uniqueSuffix = `${Date.now()}_${'byAdmin'}`+ Math.round(Math.random() * 1E10);
+    const uniqueSuffix =
+			`${Date.now()}_${'byAdmin'}` + Math.round(Math.random() * 1e10);
     const newName = `eldercall-${uniqueSuffix}-${file.originalname}`;
 
     const uploadedData = await uploadDataToS3(newName, bucketName, file.buffer);
@@ -133,17 +132,12 @@ const getAudioLinkByCategory = async (category) => {
     const result = randomAudioFile.assetLink;
     // console.log(result);
     return result.toString();
-
-    // const twiml = new twilio.twiml.VoiceResponse();
-    // twiml.play(randomAudioFile.assetLink, { loop: 1 });
-
-    // Send the TwiML as response
-    // res.type('text/xml');
-    // res.send(twiml.toString());
-  } catch (error)
-  {
+  } catch (error) {
     /* eslint-disable-next-line no-console */
-    console.log({status:500, error: `Error fetching audio files: ${error.message}` });
+    console.log({
+      status: 500,
+      error: `Error fetching audio files: ${error.message}`,
+    });
   }
 };
 
