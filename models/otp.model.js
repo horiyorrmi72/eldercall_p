@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const OTPSchema = new Schema({
   userId: {
     type: mongoose.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
   },
   email: {
     type: String,
@@ -22,5 +22,5 @@ const OTPSchema = new Schema({
   },
 });
 
-const OTP = mongoose.model("OTP", OTPSchema);
+const OTP = mongoose.model('OTP', OTPSchema);
 module.exports = OTP;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
@@ -26,8 +26,8 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "user"],
-    default: "user",
+    enum: ['admin', 'user'],
+    default: 'user',
   },
   phone: {
     type: String,
@@ -35,5 +35,5 @@ const userSchema = new Schema({
   }
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 module.exports = User;
