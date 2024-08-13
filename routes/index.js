@@ -10,6 +10,7 @@ const sidcontroller = require('../utils/service.utils');
 const appcontroller = require('../controllers/appcontroller');
 const multer = require('multer');
 const { memoryStorage } = require('multer');
+const { isAdmin } = require('../utils/authValidators.utils');
 
 const storage = memoryStorage();
 const upload = multer({
@@ -49,7 +50,7 @@ router.get('/outboundCallLogs', callcontroller.getCustomOutboundCallLogs);
 router.get('/customlogs', callcontroller.getCustomCallLogs);
 
 // Audio routes
-router.post('/upload', upload.single('audiofile'), audiocontroller.uploadAsset);
+router.post('/upload', passport.authenticate('jwt',{session:false}),isAdmin, upload.single('audiofile'), audiocontroller.uploadAsset);
 router.get('/play-audio/:category', audiocontroller.getAudioLinkByCategory);
 
 // SID creator
