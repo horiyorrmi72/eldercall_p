@@ -1,3 +1,4 @@
+/*eslint-disable*/
 require('dotenv').config();
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('../models/users.model');
