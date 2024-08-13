@@ -3,6 +3,19 @@ const validateEmail = (email) => {
   return emailRegex.test(email);
 };
 
+const isAdmin = async (req, res, next) => {
+  const user = req.user;
+  if (!user || user.role !== 'admin')
+  {
+    return res.status(403).json({
+      succes: false,
+      message: 'Seems you are not authorized for this action.',
+    });
+  }
+  next();
+};
+
 module.exports = {
   validateEmail,
+  isAdmin,
 };
