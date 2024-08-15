@@ -61,9 +61,12 @@ const uploadAsset = async (req, res) => {
     });
   }
 
-  if (file.mimetype !== 'audio/mpeg') {
+  if (file.mimetype != 'audio/mpeg')
+  {
+    const fileFormat = file.mimetype;
     return res.status(400).json({
       success: false,
+      format:fileFormat,
       message:
 				'File format not supported! Make sure to upload a file of the supported format.',
     });
