@@ -61,14 +61,12 @@ const uploadAsset = async (req, res) => {
     });
   }
 
-  if (file.mimetype != 'audio/mpeg')
-  {
+  if (file.mimetype != 'audio/mpeg') {
     const fileFormat = file.mimetype;
     return res.status(400).json({
       success: false,
-      format:fileFormat,
-      message:
-				'File format not supported! Make sure to upload a file of the supported format.',
+      format: fileFormat,
+      message: `File format not supported ${fileFormat}! Make sure to upload an audio file of the supported formats.`,
     });
   }
 
@@ -125,7 +123,7 @@ const uploadAsset = async (req, res) => {
  */
 const getAudioLinkByCategory = async (category) => {
   try {
-    const audioFiles = await audio.find(category);
+    const audioFiles = await audio.find({ category: category });
 
     if (audioFiles.length === 0) {
       throw new Error(`No audio files found for category: ${category}`);

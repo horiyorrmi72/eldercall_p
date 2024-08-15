@@ -50,7 +50,13 @@ router.get('/outboundCallLogs', callcontroller.getCustomOutboundCallLogs);
 router.get('/customlogs', callcontroller.getCustomCallLogs);
 
 // Audio routes
-router.post('/upload', passport.authenticate('jwt',{session:false}),isAdmin, upload.single('audiofile'), audiocontroller.uploadAsset);
+router.post(
+  '/upload',
+  passport.authenticate('jwt', { session: false }),
+  isAdmin,
+  upload.single('audiofile'),
+  audiocontroller.uploadAsset
+);
 router.get('/play-audio/:category', audiocontroller.getAudioLinkByCategory);
 
 // SID creator

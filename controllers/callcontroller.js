@@ -119,7 +119,7 @@ const makeCall = async (req, res) => {
 const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
   // console.log("User phone number in generateCallTwiML:", user.phone);
   const twiml = new VoiceResponse();
-  const audioToPlay = await getAudioLinkByCategory(audioCategory);
+  const audioToPlay = await getAudioLinkByCategory({ category: audioCategory });
   twiml.play(`${audioToPlay}`);
   twiml.say('A moment please while we connect you to the caller');
 
