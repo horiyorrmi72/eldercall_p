@@ -5,13 +5,14 @@ const callSchema = new Schema({
   callSid: {
     type: String,
     unique: true,
+    required: true
   },
   calleeName: {
     type: String,
   },
   phoneNumber: {
     type: String,
-    unique: true,
+    required: true,
   },
   calldirection: {
     type: String,
@@ -26,6 +27,7 @@ const callSchema = new Schema({
   },
   callDate: {
     type: Date,
+    default:Date.now(),
   },
 });
 
