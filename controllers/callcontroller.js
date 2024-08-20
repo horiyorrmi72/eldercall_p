@@ -72,6 +72,17 @@ const makeCall = async (req, res) => {
 			});
 		}
 
+		if (!audioCategory) {
+			return res.status(400).json({
+				msg: 'you need to specify a category',
+				data: {
+					call_direction: 'outbound',
+					success: false,
+					error: true,
+					error_msg: 'category is required',
+				},
+			});
+		}
 		// console.log("Callee number:", calleeNumber);
 
 		const twimlResponse = generateCallTwiML(calleeNumber, audioCategory, user);
@@ -101,7 +112,8 @@ const makeCall = async (req, res) => {
 			calldirection: calldirection || callDirection,
 			callDuration: call.duration || 0,
 			callStatus: call.status,
-			callDate: new Date().toDateString(),
+      callDate: new Date().toDateString(),
+      
 		});
 
 		await callRecord.save();
@@ -116,7 +128,7 @@ const makeCall = async (req, res) => {
 	}
 };
 
-const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
+const generateCallTwiML = async (audioCategory, user) => {
 	const twiml = new VoiceResponse();
 	const audioToPlay = await getAudioLinkByCategory(audioCategory);
 	twiml.play(`${audioToPlay}`);
