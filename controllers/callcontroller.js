@@ -128,7 +128,7 @@ const makeCall = async (req, res) => {
 	}
 };
 
-const generateCallTwiML = async (audioCategory, user) => {
+const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
 	const twiml = new VoiceResponse();
 	const audioToPlay = await getAudioLinkByCategory(audioCategory);
 	twiml.play(`${audioToPlay}`);
