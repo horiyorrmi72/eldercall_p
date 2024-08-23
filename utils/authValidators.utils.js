@@ -8,8 +8,6 @@ const limitTrials = (maxRequests) => {
 		message: `you have reached the limit for your request please try again in ${
 			windowMs / (60 * 60 * 1000)
 		} hour(s).`,
-		standardHeaders: true,
-		legacyHeaders: false,
 	});
 };
 
