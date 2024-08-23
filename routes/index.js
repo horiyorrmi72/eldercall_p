@@ -9,7 +9,7 @@ const sidcontroller = require('../utils/service.utils');
 const appcontroller = require('../controllers/appcontroller');
 const multer = require('multer');
 const { memoryStorage } = require('multer');
-const { isAdmin } = require('../utils/authValidators.utils');
+const { isAdmin, limitTrials} = require('../utils/authValidators.utils');
 
 const storage = memoryStorage();
 const upload = multer({
@@ -23,8 +23,8 @@ router.get('/', appcontroller.ElderAppHome);
 // Auth routes
 router.post('/auth/signup', authcontroller.signup);
 router.post('/auth/login', authcontroller.login);
-router.post('/auth/forgot-password', authcontroller.forgotPassword);
-router.post('/auth/reset-password', authcontroller.resetPassword);
+router.post('/auth/forgot-password',limitTrials(5), authcontroller.forgotPassword);
+router.post('/auth/reset-password', limitTrials(5), authcontroller.resetPassword);
 router.get('/password-reset',authcontroller.servePasswordResetPage);
 
 
