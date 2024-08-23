@@ -2,7 +2,7 @@ const { rateLimit } = require('express-rate-limit');
 
 const limitTrials = (maxRequests, next) => {
   const windowMs = 1 * 60 * 60 * 1000;
-  const limiter = new rateLimit({
+  const limiter = rateLimit({
     windowMs,
     limit: maxRequests,
     message: `you have reached the limit for your request please try again in ${windowMs} hour time.`
