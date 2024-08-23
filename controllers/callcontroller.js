@@ -10,6 +10,7 @@ const client = twilio(accountSid, authToken);
 const { AccessToken } = require('twilio').jwt;
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const callerId = 'elder_call';
+const countryShortCode = '+234';
 
 const defaultIdentity = callerId;
 
@@ -34,7 +35,8 @@ const callAccessToken = (user) => {
  * @param {Object} req - Express request object
  * @param {string} req.body.calleeNumber - Phone number to call
  * @param {string} req.body.calleeName - Name of call recipient
- * @param {string} const user = req.user._id;req.body.callDirection - Direction of call (inbound/outbound)
+ * @param {string} const user = req.user._id;
+ * @param {string} req.body.callDirection - Direction of call (inbound/outbound) default set to outbound.
  * @param {Object} res - Express response object
  *
  * @returns {Promise} - Promise resolving to call record object or error response
@@ -42,7 +44,7 @@ const callAccessToken = (user) => {
 
 const makeCall = async (req, res) => {
 	const user = req.user;
-	// console.log("Authenticated user:", user);
+	console.log('Authenticated user:', user);
 	if (!user) {
 		// console.error('User object is not available, you must be logged in to use this feature');
 		return res
@@ -56,7 +58,7 @@ const makeCall = async (req, res) => {
 	}
 
 	// Retrieve request body parameters
-	const { calleeNumber, calleeName, calldirection, audioCategory } = req.body;
+	let { calleeNumber, calleeName, calldirection, audioCategory } = req.body;
 
 	try {
 		if (!calleeNumber) {
@@ -71,6 +73,12 @@ const makeCall = async (req, res) => {
 				},
 			});
 		}
+		if (!calleeNumber.startsWith('+')) {
+			if (calleeNumber.startsWith('0')) {
+				calleeNumber = calleeNumber.substring(1);
+			}
+			calleeNumber = countryShortCode + calleeNumber;
+		}
 
 		if (!audioCategory) {
 			return res.status(400).json({
@@ -83,9 +91,14 @@ const makeCall = async (req, res) => {
 				},
 			});
 		}
+
 		// console.log("Callee number:", calleeNumber);
 
-		const twimlResponse = await generateCallTwiML(calleeNumber, audioCategory, user);
+		const twimlResponse = await generateCallTwiML(
+			calleeNumber,
+			audioCategory,
+			user
+		);
 		// console.log("Generated TwiML Response:", twimlResponse);
 
 		// Initiate the call
@@ -101,8 +114,8 @@ const makeCall = async (req, res) => {
 		// console.log("Call object:", call);
 
 		// Determine call direction
-    const callDirection =
-      call.direction === 'outbound-api' ? 'outbound' : 'inbound';
+		const callDirection =
+			call.direction === 'outbound-api' ? 'outbound' : 'inbound';
 		// Create a call record
 		const callRecord = new Call({
 			userId: user._id,
@@ -111,8 +124,7 @@ const makeCall = async (req, res) => {
 			calldirection: calldirection || callDirection,
 			callDuration: call.duration || 0,
 			callStatus: call.status,
-      callDate: new Date().toDateString(),
-      
+			callDate: new Date().toDateString(),
 		});
 
 		await callRecord.save();
@@ -135,11 +147,12 @@ const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
 
 	if (user.phone) {
 		twiml.dial(user.phone);
+		console.log('user phone number: ', user.phone);
 	} else {
 		console.error('User phone number is missing when generating TwiML');
 	}
 
-	return twiml.toString(); 
+	return twiml.toString();
 };
 
 const getCurrentCallSid = async () => {
