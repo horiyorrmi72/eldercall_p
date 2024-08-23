@@ -1,253 +1,184 @@
 const User = require('../models/users.model');
-const OTP = require('../models/otp.model');
+// const ResetTokenObj = require('../models/resetToken.model');
 const { hashData, compareData } = require('../utils/hashingdata.utils');
 const {
-  generateRefreshToken,
-  generateAccessToken,
+	generateRefreshToken,
+	generateAccessToken,
 } = require('../utils/token.utils');
-const { generateOTP, sendOTP, deleteOtp } = require('../utils/OTP.utils');
+const {
+	sendResetLink,
+	verifyResetToken,
+	deleteResetToken,
+} = require('../utils/OTP.utils');
 const { validateEmail } = require('../utils/authValidators.utils');
+const path = require('path');
 
 /**
  * Signs up a new user.
  *
- * This function takes a request body with fullname, email and password,
- * validates the input, checks for existing user with same email,
- * hashes the password, saves the new user to the database,
- * generates a JWT access token and
- * returns a response with the new user object and token.
- *
  * @param {Object} req - Express request object
- * @param {Object} req.body - Request body with fullname, email and password
- * @param {string} req.body.fullname - Full name of user
- * @param {string} req.body.email - Email of user
- * @param {string} req.body.password - Password of user
- * @param {string} req.body.phone - Phone number of user
+ * @param {Object} req.body - Request body with fullname, email, password, phone
  * @param {Object} res - Express response object
  * @returns {Object} res - Response with new user object and token
  */
-
 const signup = async (req, res) => {
-  const { fullname, email, password, confirmPassword, phone } = req.body;
-  try {
-    if (!fullname || !email || !password || !phone) {
-      return res.status(400).json({ error: 'all input required' });
-    }
-    // validate email.
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format!' });
-    }
+	const { fullname, email, password, confirmPassword, phone } = req.body;
+	try {
+		if (!fullname || !email || !password || !phone) {
+			return res.status(400).json({ error: 'All input fields are required' });
+		}
 
-    if (!confirmPassword || confirmPassword.length !== password.length) {
-      return res
-        .status(400)
-        .json({ error: 'password and confirm password does not match' });
-    }
+		if (!validateEmail(email)) {
+			return res.status(400).json({ error: 'Invalid email format' });
+		}
 
-    // Check if the user is already registered
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(401).json({
-        error: 'already registered, user with email or username exist!',
-      });
-    }
+		if (password !== confirmPassword) {
+			return res.status(400).json({ error: 'Passwords do not match' });
+		}
 
-    // Hash user password
-    const hashedPassword = await hashData(password);
+		const existingUser = await User.findOne({ email });
+		if (existingUser) {
+			return res
+				.status(400)
+				.json({ error: 'User already registered with this email' });
+		}
 
-    // Create a new user account and save data to db
-    const user = new User({
-      fullname,
-      email,
-      password: hashedPassword,
-      phone,
-    });
-    await user.save();
-    const token = generateAccessToken({ userId: user._id });
+		const hashedPassword = await hashData(password);
 
-    res
-      .status(200)
-      .json({ message: 'User Created Successfully', user: user, token });
-  } catch (err) {
-    // console.log(err);
-    return res.status(500).json({ error: err.message });
-  }
+		const user = new User({
+			fullname,
+			email,
+			password: hashedPassword,
+			phone,
+		});
+		await user.save();
+
+		const token = generateAccessToken({ userId: user._id });
+
+		return res
+			.status(201)
+			.json({ message: 'User created successfully', user, token });
+	} catch (err) {
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', details: err.message });
+	}
 };
 
 /**
  * Logs a user in by validating their email and password.
- * Checks if user exists and password matches.
- * Generates JWT access and refresh tokens on success.
  *
  * @param {Object} req - Express request object
- * @param {string} req.body.email - User's email
- * @param {string} req.body.password - User's password
+ * @param {Object} req.body - Request body with email and password
  * @param {Object} res - Express response object
  * @returns {Object} res - Response with auth tokens and user data
  */
 const login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid Email or Password!' });
-    }
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ error: 'Not a user 🙁 kindly signup ' });
-    }
+	const { email, password } = req.body;
+	try {
+		if (!validateEmail(email)) {
+			return res.status(400).json({ error: 'Invalid email format' });
+		}
 
-    // Checking if password matches with the user's password on db
-    const matchPassword = await compareData(password, user.password);
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(401).json({ error: 'User not found. Please sign up.' });
+		}
 
-    if (!matchPassword) {
-      return res.status(401).json({ error: 'password mismatch' });
-    }
+		const matchPassword = await compareData(password, user.password);
+		if (!matchPassword) {
+			return res.status(401).json({ error: 'Incorrect password' });
+		}
 
-    const accessToken = generateAccessToken({ userId: user._id });
-    const refreshToken = generateRefreshToken({ userId: user._id });
-    return res.status(200).json({
-      message: 'User authenticated',
-      accessToken: 'JWT ' + accessToken,
-      refreshToken: refreshToken,
-      user: { id: user._id, email: user.email, fullname: user.fullname },
-    });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
+		const accessToken = generateAccessToken({ userId: user._id });
+		const refreshToken = generateRefreshToken({ userId: user._id });
+
+		return res.status(200).json({
+			message: 'Login successful',
+			accessToken: 'JWT ' + accessToken,
+			refreshToken,
+			user: { id: user._id, email: user.email, fullname: user.fullname },
+		});
+	} catch (err) {
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', details: err.message });
+	}
 };
 
-// forgot password
 /**
- * Handles forgot password flow.
- * Sends OTP to user email if registered.
- * Saves hashed OTP in DB.
- * Returns 200 with email as token on success.
+ * Handles forgot password flow by sending a reset link to the user's email.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body with email
+ * @param {Object} res - Express response object
+ * @returns {Object} res - Response with success message
  */
 const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format!' });
-    }
+	const { email } = req.body;
+	try {
+		if (!validateEmail(email)) {
+			return res.status(400).json({ error: 'Invalid email format' });
+		}
 
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'Not a registered user!' });
-    }
-
-    const resetOtp = generateOTP();
-    const hashedOTP = await hashData(resetOtp);
-
-    // Save OTP and email to the database
-    user.resetPasswordOTP = hashedOTP;
-    await user.save();
-
-    // Send OTP to the user's email
-    await sendOTP(res, email, resetOtp);
-
-    // Return the response with the email (token) here
-    return res.status(200).json({
-      message: 'OTP sent successfully for password reset',
-      token: email,
-    });
-  } catch (error) {
-    // console.error(error);
-    return res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
-  }
-};
-
-// =========updating password============
-/**
- * Handles resetting user password with OTP.
- * Verifies OTP against user email.
- * Updates user password if OTP is valid.
- * Returns 200 if password reset is successful.
- */
-const resetCode = async (req, res) => {
-  try {
-    const { token, otp } = req.body;
-
-    const user = await User.findOne({ email: token });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const existingOtp = await OTP.findOne({ email: token });
-
-    if (!existingOtp) {
-      return res
-        .status(401)
-        .json({ message: 'OTP not found or not registered email' });
-    }
-
-    const { expiresAt } = existingOtp;
-
-    if (expiresAt < Date.now()) {
-      await OTP.deleteOne({ email: token });
-      return res.status(401).json({ message: 'Code expired' });
-    }
-
-    const hashedOtp = existingOtp.otp;
-    const verifiedOtp = await compareData(otp, hashedOtp);
-
-    if (!verifiedOtp) {
-      return res.status(401).json({ message: 'Invalid OTP' });
-    }
-
-    return res
-      .status(200)
-      .json({ message: 'OTP verified successfully', token });
-  } catch (error) {
-    // console.log(error);
-    return res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
-  }
+		await sendResetLink(req,res, email);
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', details: error.message });
+	}
 };
 
 /**
- * Handles resetting user password with a new password.
- * Verifies user email and ensures new password meets length requirement.
- * Hashes new password and updates user document.
- * Calls deleteOtp() to invalidate OTP after password reset.
- * Returns 200 if password reset successful.
+ * Resets the user's password with a new password.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body with email, token, and new password
+ * @param {Object} res - Express response object
+ * @returns {Object} res - Response with success message
  */
 const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
+	const { email, token, newPassword } = req.body;
+	try {
+		if (!email || !token || !newPassword) {
+			return res.status(400).json({ error: 'All fields are required' });
+		}
 
-    const user = await User.findOne({ email: token });
+		const verification = await verifyResetToken(email, token);
+		if (verification.error) {
+			return res.status(400).json({ error: verification.error });
+		}
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+		if (newPassword.length < 8) {
+			return res
+				.status(400)
+				.json({ error: 'Password must be at least 8 characters long' });
+		}
 
-    if (newPassword.length < 8) {
-      return res.status(403).json({ message: 'Password too short' });
-    }
+		const hashedPassword = await hashData(newPassword);
+		await User.updateOne({ email }, { password: hashedPassword });
+		await deleteResetToken(email);
 
-    const hashNewPassword = await hashData(newPassword);
-    await User.updateOne({ email: token }, { password: hashNewPassword });
+		return res.status(200).json({ message: 'Password updated successfully' });
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', details: error.message });
+	}
+};
 
-    await deleteOtp(token);
-
-    return res.status(200).json({ message: 'Password updated successfully' });
-  } catch (error) {
-    // console.error(error.message);
-    return res
-      .status(500)
-      .json({ message: 'Internal server error', error: error.message });
-  }
+const servePasswordResetPage = async (req, res) => {
+	const { token, email } = req.query;
+	if (!(token && email)) {
+		return res.status(400).send('Invalid reset link');
+	}
+	res.sendFile(path.join(__dirname, '../views/templates/Password_reset.html'));
 };
 
 module.exports = {
-  signup,
-  login,
-  forgotPassword,
-  resetCode,
-  resetPassword,
+	signup,
+	login,
+	forgotPassword,
+	resetPassword,
+	servePasswordResetPage,
 };
