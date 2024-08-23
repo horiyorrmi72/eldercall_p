@@ -13,6 +13,7 @@ const callSchema = new Schema({
   phoneNumber: {
     type: String,
     required: true,
+    trim: true,
   },
   calldirection: {
     type: String,

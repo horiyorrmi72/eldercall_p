@@ -4,7 +4,6 @@ const passport = require('passport');
 const authcontroller = require('../controllers/authcontroller');
 const usercontroller = require('../controllers/usercontroller');
 const callcontroller = require('../controllers/callcontroller');
-const OTP = require('../utils/OTP.utils');
 const audiocontroller = require('../controllers/audiocontroller');
 const sidcontroller = require('../utils/service.utils');
 const appcontroller = require('../controllers/appcontroller');
@@ -26,9 +25,8 @@ router.post('/auth/signup', authcontroller.signup);
 router.post('/auth/login', authcontroller.login);
 router.post('/auth/forgot-password', authcontroller.forgotPassword);
 router.post('/auth/reset-password', authcontroller.resetPassword);
-router.post('/sendotp', OTP.sendOTP);
-router.post('/verifyotp', OTP.verifyOtp);
-router.post('/deleteotp', OTP.deleteOtp);
+router.get('/password-reset',authcontroller.servePasswordResetPage);
+
 
 // User routes
 router.get('/userbyid/:id', usercontroller.getUserById);

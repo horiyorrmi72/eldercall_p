@@ -1,113 +1,104 @@
 const fs = require('fs').promises;
 const path = require('path');
 const User = require('../models/users.model');
-const OTP = require('../models/otp.model');
+const ResetTokenObj = require('../models/resetToken.model');
 const { sendMail } = require('../utils/sendMail.utils');
-const { hashData, compareData } = require('./hashingdata.utils');
+const crypto = require('crypto');
 
-const generateOTP = () => {
-  const min = 100000;
-  const max = 999999;
-  return String(Math.floor(min + Math.random() * (max - min + 1)));
+const generateResetToken = () => crypto.randomBytes(32).toString('hex');
+
+const sendResetLink = async (req, res, email) => {
+	try {
+		if (!email) {
+			return res.status(400).json({ error: 'Provide a valid user email' });
+		}
+
+		const user = await User.findOne({ email });
+
+		if (!user) {
+			return res.status(404).json({ error: 'User not found' });
+		}
+
+		const resetToken = generateResetToken();
+		const hashedToken = crypto
+			.createHash('sha256')
+			.update(resetToken)
+			.digest('hex');
+
+		await ResetTokenObj.deleteMany({ email });
+
+		const newResetToken = new ResetTokenObj({
+			userId: user._id,
+			email,
+			token: hashedToken,
+			expiresAt: Date.now() + 1 * 60 * 60 * 1000,
+		});
+		await newResetToken.save();
+
+		// Read the HTML template file
+		const templatePath = path.join(
+			__dirname,
+			'../views/templates/resetLink.html'
+		);
+		const htmlTemplate = await fs.readFile(templatePath, 'utf8');
+		const resetLink = `${req.protocol}://${req.get(
+			'host'
+		)}/password-reset?token=${resetToken}&email=${email}`;
+
+		const mailInfo = {
+			from: process.env._EMAIL,
+			to: email,
+			subject: 'Password Reset Link from the elderApp',
+			html: htmlTemplate
+				.replace('{{username}}', user.fullname.split(' ')[0])
+				.replace('{{resetLink}}', resetLink),
+		};
+
+		await sendMail(mailInfo);
+		return res
+			.status(200)
+			.json({ message: 'Password reset link sent successfully', resetLink });
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
 };
 
-const sendOTP = async (res, email) => {
-  try {
-    if (!email) {
-      return res.status(400).json({ error: 'Provide a valid user email' });
-    }
+const verifyResetToken = async (email, token) => {
+	try {
+		if (!(email && token)) {
+			return { error: 'Values cannot be empty' };
+		}
 
-    const existingUser = await User.findOne({ email });
+		const existingToken = await ResetTokenObj.findOne({ email });
 
-    if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+		if (!existingToken || existingToken.expiresAt < Date.now()) {
+			return { error: 'Invalid or expired reset link' };
+		}
 
-    const generatedOTP = generateOTP();
+		const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+		if (hashedToken !== existingToken.token) {
+			return { error: 'Invalid reset token' };
+		}
 
-    await OTP.deleteMany({ email });
-
-    // Read the HTML template file from views/template directory
-    const templatePath = path.join(__dirname, '../views/templates/otp.html');
-    const htmlTemplate = await fs.readFile(templatePath, 'utf8');
-
-    const mailInfo = {
-      from: process.env._EMAIL,
-      to: email,
-      subject: 'Your One-Time Password (OTP) from the callAPP',
-      html: htmlTemplate
-        .replace('{{username}}', existingUser.fullname)
-        .replace('{{otp}}', generatedOTP),
-    };
-
-    await sendMail(mailInfo);
-
-    const hashedOTP = await hashData(generatedOTP);
-
-    const newOTP = new OTP({
-      email,
-      otp: hashedOTP,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours validity
-    });
-
-    await newOTP.save();
-
-    return { token: email };
-  } catch (error) {
-    // console.error(error);
-    res.send({ status: 500, error: error.message });
-  }
+		return { message: 'Token verified', verified: true };
+	} catch (error) {
+		console.error(error.message);
+		return { error: error.message };
+	}
 };
 
-const verifyOtp = async (token, otp) => {
-  try {
-    if (!(otp && token)) {
-      return { error: 'Values cannot be empty' };
-    }
-
-    const existingOtp = await OTP.findOne({ email: token });
-
-    if (!existingOtp) {
-      return { error: 'OTP not found or not registered email' };
-    }
-
-    const { expiresAt } = existingOtp;
-
-    if (expiresAt < Date.now()) {
-      await OTP.deleteOne({ email: token });
-      return { message: 'Code expired' };
-    }
-
-    const hashedOtp = existingOtp.otp;
-    const verifiedOtp = await compareData(otp, hashedOtp);
-
-    if (!verifiedOtp) {
-      return { message: 'Invalid OTP' };
-    }
-
-    return { message: 'Success', verifiedOtp };
-  } catch (error)
-  {
-    /* eslint-disable-next-line no-console*/
-    console.error(error.message);
-  }
-};
-
-const deleteOtp = async (token) => {
-  try {
-    await OTP.deleteOne({ email: token });
-    return 'Successfully deleted';
-  } catch (error)
-  {
-    /*eslint-disable-next-line no-console*/
-    console.log(error);
-  }
+const deleteResetToken = async (email) => {
+	try {
+		await ResetTokenObj.deleteOne({ email });
+		return 'Successfully deleted';
+	} catch (error) {
+		console.error(error);
+		return 'Error deleting token';
+	}
 };
 
 module.exports = {
-  generateOTP,
-  sendOTP,
-  verifyOtp,
-  deleteOtp,
+	sendResetLink,
+	verifyResetToken,
+	deleteResetToken,
 };
