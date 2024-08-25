@@ -14,7 +14,7 @@ const MongoStore = require('connect-mongo');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
 // Middleware
 app.use(logger('dev'));
 app.use(express.json());
