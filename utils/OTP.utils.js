@@ -57,7 +57,7 @@ const sendResetLink = async (req, res, email) => {
 		await sendMail(mailInfo);
 		return res
 			.status(200)
-			.json({ message: 'Password reset link sent successfully', resetLink });
+			.json({ message: 'Password reset link sent successfully' });
 	} catch (error) {
 		return res.status(500).json({ error: error.message });
 	}
