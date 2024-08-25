@@ -48,11 +48,19 @@
             margin-top: 20px;
         }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function ()
+        {
+            const serverUrl = window.location.origin;
+            const logo = document.getElementById('logo');
+            logo.src = `${serverUrl}/views/images/logo1.svg`;
+        });
+    </script>
 </head>
 
 <body>
     <div class="logo">
-        <img src="https://elderappstoragedemo.s3.eu-north-1.amazonaws.com/dev-images/IMG-20240824-WA0085.svg" alt="elder call app logo">
+        <img id="logo"  src="" alt="elder call app logo">
     </div>
     <div class="container">
         <h2>One Time Password (OTP)</h2>

@@ -46,12 +46,20 @@
             margin: 10px 0;
         }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function ()
+        {
+            const serverUrl = window.location.origin;
+            const logo = document.getElementById('logo');
+            logo.src = `${serverUrl}/views/images/logo1.svg`;
+        });
+    </script>
 </head>
 
 <body>
     <div class="container">
         <div class="logo">
-            <img src="https://elderappstoragedemo.s3.eu-north-1.amazonaws.com/dev-images/IMG-20240824-WA0085.svg" alt="Elder Call App Logo">
+            <img id="logo" src="" alt="Elder Call App Logo">
         </div>
         <h1>Welcome to Elder Call App</h1>
         <p>Celebrate your loved ones in awe, where we play a wonderful audio for them based on the event before
