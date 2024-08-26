@@ -22,9 +22,10 @@ const path = require('path');
  * @returns {Object} res - Response with new user object and token
  */
 const signup = async (req, res) => {
-	const { fullname, email, password, confirmPassword, phone } = req.body;
+	const { fullname, email, password, confirmPassword, phone, country_code } =
+		req.body;
 	try {
-		if (!fullname || !email || !password || !phone) {
+		if (!fullname || !email || !password || !phone || !country_code) {
 			return res.status(400).json({ error: 'All input fields are required' });
 		}
 
@@ -43,13 +44,15 @@ const signup = async (req, res) => {
 				.json({ error: 'User already registered with this email' });
 		}
 
+		const newUserPhoneNumber = country_code + phone;
 		const hashedPassword = await hashData(password);
 
 		const user = new User({
 			fullname,
 			email,
 			password: hashedPassword,
-			phone,
+			phone:newUserPhoneNumber,
+			country_code,
 		});
 		await user.save();
 
@@ -121,7 +124,7 @@ const forgotPassword = async (req, res) => {
 			return res.status(400).json({ error: 'Invalid email format' });
 		}
 
-		await sendResetLink(req,res, email);
+		await sendResetLink(req, res, email);
 	} catch (error) {
 		return res
 			.status(500)
