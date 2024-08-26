@@ -10,7 +10,6 @@ const client = twilio(accountSid, authToken);
 const { AccessToken } = require('twilio').jwt;
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const callerId = 'elder_call';
-const countryShortCode = '+234';
 
 const defaultIdentity = callerId;
 
@@ -44,18 +43,18 @@ const callAccessToken = (user) => {
 
 const makeCall = async (req, res) => {
 	const user = req.user;
-	console.log('Authenticated user:', user);
+	// console.log('Authenticated user:', user);
 	if (!user) {
 		// console.error('User object is not available, you must be logged in to use this feature');
 		return res
 			.status(500)
-			.send('User data is missing or incomplete, please try again');
+			.send('make sure you are logged in to use this feature');
 	}
-
-	if (!user.phone) {
-		// console.error('User phone number is not available:', user.phone);
-		return res.status(500).send('User phone number is missing');
-	}
+	/* this can  be removed since the phone number is required for authentication and every user needs to be logged in to use it*/
+	// if (!user.phone) {
+	// 	// console.error('User phone number is not available:', user.phone);
+	// 	return res.status(500).send('User phone number is missing');
+	// }
 
 	// Retrieve request body parameters
 	let { calleeNumber, calleeName, calldirection, audioCategory } = req.body;
@@ -77,7 +76,7 @@ const makeCall = async (req, res) => {
 			if (calleeNumber.startsWith('0')) {
 				calleeNumber = calleeNumber.substring(1);
 			}
-			calleeNumber = countryShortCode + calleeNumber;
+			calleeNumber = user.country_code + calleeNumber;
 		}
 
 		if (!audioCategory) {
@@ -144,12 +143,11 @@ const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
 	const audioToPlay = await getAudioLinkByCategory(audioCategory);
 	twiml.play(audioToPlay);
 	twiml.say('A moment please while we connect you to the caller');
-
 	if (user.phone) {
 		twiml.dial(user.phone);
-		console.log('user phone number: ', user.phone);
+		console.log('User phone number: ', user.phone);
 	} else {
-		console.error('User phone number is missing when generating TwiML');
+		throw new Error('User phone number is required to generate TwiML');
 	}
 
 	return twiml.toString();
