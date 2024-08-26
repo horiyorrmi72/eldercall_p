@@ -145,7 +145,7 @@ const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
 	twiml.say('A moment please while we connect you to the caller');
 	if (user.phone) {
 		twiml.dial(user.phone);
-		console.log('User phone number: ', user.phone);
+		// console.log('User phone number: ', user.phone);
 	} else {
 		throw new Error('User phone number is required to generate TwiML');
 	}
