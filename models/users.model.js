@@ -32,8 +32,12 @@ const userSchema = new Schema({
   phone: {
     type: String,
     required: true,
+  },
+  country_code: {
+    type: String,
+    required: true,
   }
-});
+},{timestamps:true});
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
