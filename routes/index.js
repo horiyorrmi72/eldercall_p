@@ -55,7 +55,7 @@ router.post(
   upload.single('audiofile'),
   audiocontroller.uploadAsset
 );
-router.get('/play-audio/:category', audiocontroller.getAudioLinkByCategory);
+router.get('/audiobycategory', audiocontroller.getAudiosByCategory);
 
 // SID creator
 router.get('/getSid', sidcontroller.createService);
