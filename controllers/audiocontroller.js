@@ -177,7 +177,7 @@ const getAudiosByCategory = async (req, res) => {
 				.status(400)
 				.json({ success: false, message: 'you must select a category.' });
 		}
-    const categoryFiles = await audio.find({ category: category }).exec();
+    const categoryFiles = await audio.find({ category: category }).select('-_id').exec();
 		if (!categoryFiles || categoryFiles.length === 0) {
       return res.status(404).json({
         success: false,
