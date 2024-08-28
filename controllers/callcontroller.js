@@ -1,6 +1,9 @@
 const Call = require('../models/call.model');
 const User = require('../models/users.model');
-const { getAudioLinkByCategory } = require('./audiocontroller');
+const {
+	getAudioLinkByCategory,
+	getAudioLinkByName,
+} = require('./audiocontroller');
 const twilio = require('twilio');
 const passport = require('passport');
 
@@ -50,25 +53,25 @@ const makeCall = async (req, res) => {
 			.status(500)
 			.send('make sure you are logged in to use this feature');
 	}
-	/* this can  be removed since the phone number is required for authentication and every user needs to be logged in to use it*/
+	/* this can  be removed since the phone number is required for authentication and every user needs to be logged in to use it that mean every user using it already logged in and the phone number is present.*/
 	// if (!user.phone) {
 	// 	// console.error('User phone number is not available:', user.phone);
 	// 	return res.status(500).send('User phone number is missing');
 	// }
 
 	// Retrieve request body parameters
-	let { calleeNumber, calleeName, calldirection, audioCategory } = req.body;
+	let { calleeNumber, calleeName, calldirection, audioName } = req.body;
 
 	try {
-		if (!calleeNumber) {
+		if (!calleeNumber || !audioName) {
 			// console.error('Recipient number is required but not provided');
 			return res.status(400).json({
-				msg: 'Recipient number is required',
+				msg: 'Ensure you have provided all required details.',
 				data: {
 					call_direction: 'outbound',
 					success: false,
 					error: true,
-					error_msg: 'Recipient number is required',
+					error_msg: 'Ensure you have provided all required details.',
 				},
 			});
 		}
@@ -79,25 +82,31 @@ const makeCall = async (req, res) => {
 			calleeNumber = user.country_code + calleeNumber;
 		}
 
-		if (!audioCategory) {
-			return res.status(400).json({
-				msg: 'you need to specify a category',
-				data: {
-					call_direction: 'outbound',
-					success: false,
-					error: true,
-					error_msg: 'category is required',
-				},
-			});
-		}
+		// if (!audioCategory) {
+		// 	return res.status(400).json({
+		// 		msg: 'you need to specify a category',
+		// 		data: {
+		// 			call_direction: 'outbound',
+		// 			success: false,
+		// 			error: true,
+		// 			error_msg: 'category is required',
+		// 		},
+		// 	});
+		// }
 
 		// console.log("Callee number:", calleeNumber);
 
 		const twimlResponse = await generateCallTwiML(
 			calleeNumber,
-			audioCategory,
+			audioName,
 			user
 		);
+		if (!twimlResponse) {
+			return res.status(500).json({
+				message: 'Failed to initiate call, please check the audio file name.',
+				success: false,
+			});
+		}
 		// console.log("Generated TwiML Response:", twimlResponse);
 
 		// Initiate the call
@@ -138,19 +147,27 @@ const makeCall = async (req, res) => {
 	}
 };
 
-const generateCallTwiML = async (calleeNumber, audioCategory, user) => {
+const generateCallTwiML = async (calleeNumber, audioName, user) => {
 	const twiml = new VoiceResponse();
-	const audioToPlay = await getAudioLinkByCategory(audioCategory);
-	twiml.play(audioToPlay);
-	twiml.say('A moment please while we connect you to the caller');
-	if (user.phone) {
-		twiml.dial(user.phone);
-		// console.log('User phone number: ', user.phone);
-	} else {
-		throw new Error('User phone number is required to generate TwiML');
-	}
+	try {
+		const audioToPlay = await getAudioLinkByName(audioName);
+		if (!audioToPlay) {
+			throw new Error(`No audio found with the name: ${audioName}`);
+		}
+		twiml.play(audioToPlay);
+		twiml.say('A moment please while we connect you to the caller');
+		if (user.phone) {
+			twiml.dial(user.phone);
+			// console.log('User phone number: ', user.phone);
+		} else {
+			throw new Error('User phone number is required to generate TwiML');
+		}
 
-	return twiml.toString();
+		return twiml.toString();
+	} catch (error) {
+		console.log(error.message);
+		return null;
+	}
 };
 
 const getCurrentCallSid = async () => {
