@@ -170,7 +170,7 @@ const getAudioLinkByName = async (audioName) => {
 };
 
 const getAudiosByCategory = async (req, res) => {
-	const { category } = req.body;
+	const { category } = req.query;
 	try {
 		if (!category) {
 			return res
