@@ -149,17 +149,16 @@ const makeCall = async (req, res) => {
 
 const generateCallTwiML = async (calleeNumber, audioName, user) => {
 	const twiml = new VoiceResponse();
-	const gather = twiml.gather({
-		input: 'dtmf',
-		timeout: 20,
-	});
+	// const gather = twiml.gather({
+	// 	timeout: 20, // to controll the timeout for the audio played (i.e the duration the audio will play for.)
+	// });
 
 	try {
 		const audioToPlay = await getAudioLinkByName(audioName);
 		if (!audioToPlay) {
 			throw new Error(`No audio found with the name: ${audioName}`);
 		}
-		gather.play(audioToPlay);
+		twiml.play(audioToPlay);
 		twiml.say('A moment please while we connect you to the caller');
 		if (user.phone) {
 			twiml.dial(user.phone);
