@@ -13,7 +13,6 @@ const client = twilio(accountSid, authToken);
 const { AccessToken } = require('twilio').jwt;
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const callerId = 'elder_call';
-const audioPlayTiming = 30 * 1000;
 
 const defaultIdentity = callerId;
 
@@ -152,10 +151,9 @@ const generateCallTwiML = async (calleeNumber, audioName, user) => {
 	const twiml = new VoiceResponse();
 	const gather = twiml.gather({
 		input: 'dtmf',
-		timeout: 45,
+		timeout: 20,
 	});
-	console.log(gather.attribs);
-	
+
 	try {
 		const audioToPlay = await getAudioLinkByName(audioName);
 		if (!audioToPlay) {
