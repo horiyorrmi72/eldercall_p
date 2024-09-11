@@ -22,7 +22,7 @@ const path = require('path');
  * @returns {Object} res - Response with new user object and token
  */
 const signup = async (req, res) => {
-	const { fullname, email, password, confirmPassword, phone, country_code } =
+	let { fullname, email, password, confirmPassword, phone, country_code } =
 		req.body;
 	try {
 		if (!fullname || !email || !password || !phone || !country_code) {
@@ -31,6 +31,14 @@ const signup = async (req, res) => {
 
 		if (!validateEmail(email)) {
 			return res.status(400).json({ error: 'Invalid email format' });
+		}
+
+		let newUserPhoneNumber = phone;
+		if (!phone.startsWith('+')) {
+			if (phone.startsWith('0')) {
+				phone = phone.substring(1);
+			}
+			newUserPhoneNumber = country_code + phone;
 		}
 
 		if (password !== confirmPassword) {
@@ -44,14 +52,13 @@ const signup = async (req, res) => {
 				.json({ error: 'User already registered with this email' });
 		}
 
-		const newUserPhoneNumber = country_code + phone;
 		const hashedPassword = await hashData(password);
 
 		const user = new User({
 			fullname,
 			email,
 			password: hashedPassword,
-			phone:newUserPhoneNumber,
+			phone: newUserPhoneNumber,
 			country_code,
 		});
 		await user.save();
