@@ -99,7 +99,7 @@ const uploadAsset = async (req, res) => {
 
 		await asset.save();
 
-		res.status(200).json({
+		return res.status(200).json({
 			success: true,
 			message: 'Asset created successfully',
 			asset,
