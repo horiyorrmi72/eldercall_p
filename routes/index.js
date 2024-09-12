@@ -20,6 +20,7 @@ const upload = multer({
 const router = express.Router();
 
 router.get('/', appcontroller.ElderAppHome);
+router.get('/elderdocs', appcontroller.documentationPage);
 // Auth routes
 router.post('/auth/signup', authcontroller.signup);
 router.post('/auth/login', authcontroller.login);
