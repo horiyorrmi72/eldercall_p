@@ -161,7 +161,7 @@ const generateCallTwiML = async (calleeNumber, audioName, user) => {
 		twiml.play(audioToPlay);
 		twiml.say('A moment please while we connect you to the caller');
 		if (user.phone) {
-			twiml.dial({timeLimit:120},user.phone);
+			twiml.dial(user.phone); //({timeLimit:120},user.phone);
 			// console.log('User phone number: ', user.phone);
 		} else {
 			throw new Error('User phone number is required to generate TwiML');
