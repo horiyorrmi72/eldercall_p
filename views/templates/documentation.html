@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation | Elder App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .doc-header {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        p {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-section">
+        <header class="doc-header">
+            <p class="note center-text"><i>Note:</i> This is just a documentation that shows the services that require
+                renewal for this project.</p>
+        </header>
+    </div>
+
+    <div class="content-section">
+        <table>
+            <tr>
+                <th>S/N</th>
+                <th>Products/Services</th>
+                <th>Usage</th>
+                <th>Renewal Cost/Service Charge</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>MongoDB</td>
+                <td>Used for the storage of data such as user data and the likes.</td>
+                <td>PAY AS YOU GO </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>AWS S3 Bucket</td>
+                <td>Used for storing the main audio file.</td>
+                <td>This is a pay as you go service.</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Render</td>
+                <td>Hosting platform for the server.</td>
+                <td>$25 [standard plan]</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Twilio</td>
+                <td>Used for handling the call infrastructure.</td>
+                <td>N/A, but the limit is $20 </td>
+            </tr>
+        </table>
+        <p>The above-listed services are on a monthly renewal basis, subject to changes. Any updates regarding the
+            services used will be sent to the registered email: <i><strong>eldercalls.info@gmail.com</strong></i>.</p>
+        <p>All services with the <b>N/A</b> are on a pay-as-you-go plan. Links for more insight on
+            their pricing:</p>
+        <ul>
+            <li>AWS S3 Bucket: <a href="https://aws.amazon.com/s3/pricing/">link to S3 pricing page</a></li>
+            <li>MongoDB: <a href="https://www.mongodb.com/pricing">link to MongoDB pricing page</a></li>
+        </ul>
+        <p>The MongoDB service is currently on the free tier. As the user base grows, it can be upgraded to the
+            serverless plan.</p>
+    </div>
+</body>
+
+</html>
