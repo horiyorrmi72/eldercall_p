@@ -19,7 +19,21 @@ const ElderAppHome = async (req, res) => {
 		res.status(200).send(data);
 	});
 };
-
+const documentationPage = async (req, res, next) => {
+	const templatePath = path.join(
+		__dirname,
+		'../views/templates/documentation.html'
+	);
+	fs.readFile(templatePath, 'utf8', (err, data) => {
+		if (err) {
+			console.error('Error reading docuntation template: ' + err);
+			res.status(500).send('internal error');
+			return;
+		}
+		res.status(200).send(data);
+	});
+};
 module.exports = {
 	ElderAppHome,
+	documentationPage,
 };
