@@ -52,5 +52,5 @@ module.exports = {
 	getUserById,
 	getUsersTotal,
 	removeUser,
-	getAllUSers,
+	/*getAllUSers,*/
 };
